@@ -2,10 +2,13 @@
 
 Apple のオンデバイス Foundation Models フレームワークを使った、シンプルな macOS 翻訳ユーティリティです。
 
-ほかのアプリでテキストを選択し、**Command+C を2回**押すと、MacTranslate がクリップボードのテキストを翻訳して小さなフローティングパネルに表示します。
+ほかのアプリでテキストを選択し、**Command+C を2回**押すと、MacTranslate がクリップボードのテキストを翻訳して半透明のフローティングパネルに表示します。
 
-- 日本語のテキスト → 英語
-- 日本語以外のテキスト → 日本語
+- 入力言語を自動判定し、日本語は英語、それ以外は日本語を既定の翻訳先に設定
+- オンデバイスモデルが対応する言語を選択可能（日本語・英語を先頭に表示）
+- 矢印ボタンで表示中の訳文を入力言語へ逆翻訳
+- 翻訳文を選択し、通常の ⌘C でコピー
+- SwiftUI の Liquid Glass パネル。Escape キーで閉じる
 - FoundationModels を使ってデバイス上で翻訳
 - API キーやサーバーは不要
 - Swift Package Manager でビルド（Xcode プロジェクトは不要）
@@ -55,13 +58,14 @@ swift run MacTranslate
 2. Safari、プレビュー、VS Code、PDF リーダーなどでテキストを選択します。
 3. 約550ミリ秒以内に ⌘C を2回押します。
 4. フローティング翻訳パネルが表示されるまで待ちます。
-5. **コピー**を使って翻訳結果をコピーします。
+5. 言語メニューから翻訳先を選ぶか、矢印ボタンで表示中の訳文を入力言語へ逆翻訳します。
+6. 翻訳文を選択して ⌘C でコピーします。Escape キーでパネルを閉じます。
 
 最初の通常の ⌘C ですでに、選択したテキストがシステムのペーストボードにコピーされます。MacTranslate はグローバルキーイベントを監視したあと、NSPasteboard.general からテキストを読み取るだけです。キーボードイベントの送信や抑制は行いません。
 
 ## アップデート
 
-Sparkle 対応版をインストールすると、MacTranslate は Sparkle のスケジュールに従ってアップデートを自動確認します（既定で有効）。メニューバーの MT メニューから **Check for Updates…** を選ぶと、手動でも確認できます。同じメニューの **Automatically Check for Updates** で自動確認のオン・オフを切り替えられます。ダウンロードとインストールは Sparkle の画面で承認してから行われます。
+Sparkle 対応版をインストールすると、MacTranslate は Sparkle のスケジュールに従ってアップデートを自動確認します（既定で有効）。メニューバーの MacTranslate メニューから **Check for Updates…** を選ぶと、手動でも確認できます。同じメニューの **Automatically Check for Updates** で自動確認のオン・オフを切り替えられます。ダウンロードとインストールは Sparkle の画面で承認してから行われます。
 
 最初の MVP には Sparkle が含まれていません。既存ユーザーは Sparkle 対応版を一度手動でインストールしてください。その後のリリースはアプリ内で更新できます。
 
@@ -79,17 +83,18 @@ Sparkle 対応版をインストールすると、MacTranslate は Sparkle の�
 NSEvent のグローバルモニター → NSPasteboard.general
        │
        ▼
-SystemLanguageModel.default → LanguageModelSession
-       │
-       ▼
-フローティング NSPanel
+SystemLanguageModel.default → 対応言語一覧 → LanguageModelSession
+        │
+        ▼
+フローティング NSPanel 内の SwiftUI Liquid Glass ビュー
 
-メニューバーの MT → Sparkle updater → 公開 GitHub appcast とリリース ZIP
+SwiftUI MenuBarExtra → Sparkle updater → 公開 GitHub appcast とリリース ZIP
 ~~~
 
 ## 現在の MVP における制限
 
-- 言語の判定ルールは意図的にシンプルにしています。入力に日本語の文字が含まれていれば英語に、それ以外は日本語に翻訳します。
+- 入力言語の自動判定は NaturalLanguage を使います。短文や複数言語が混ざった文章では誤判定することがあります。
+- 翻訳先の候補は、その Mac のオンデバイス Foundation Model が対応する言語によって異なります。
 - ⌘C を550ミリ秒以内に2回押し、2つのグローバルなキー押下イベントとして認識される必要があります。
 - この MVP は Foundation Models の利用を目的としているため、Apple の専用 Translation フレームワークではなく LLM による翻訳を使います。
 - 翻訳のみを行うようプロンプトで指定していますが、Foundation Models が意図せず言い換えることがあります。製品版では翻訳品質を評価し、必要に応じて Translation フレームワークを決定的な既定バックエンドとして追加する方法が考えられます。
@@ -124,11 +129,19 @@ make clean
 │   ├── release-config.sh
 │   ├── release.sh
 │   └── setup-update-signing.sh
-└── Sources/
-    └── MacTranslate/
-        ├── AppUpdater.swift
-        ├── MacTranslate.swift
-        └── UpdateStatusItemController.swift
+├── Sources/
+│   └── MacTranslate/
+│       ├── AppUpdater.swift
+│       ├── FoundationTranslator.swift
+│       ├── MacTranslateApp.swift
+│       ├── MacTranslate.swift
+│       ├── TranslationLanguageCatalog.swift
+│       ├── TranslationPanelController.swift
+│       ├── TranslationPanelModel.swift
+│       └── TranslationPanelView.swift
+└── Tests/
+    └── MacTranslateTests/
+        └── TranslationLanguageCatalogTests.swift
 ~~~
 
 ## CLI でビルドしたアプリバンドルを使う理由

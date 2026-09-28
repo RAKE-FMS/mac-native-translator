@@ -2,10 +2,13 @@
 
 A minimal macOS translation utility powered by Apple's on-device Foundation Models framework.
 
-Select text in another app, press **Command+C twice**, and MacTranslate translates the clipboard text in a small floating panel.
+Select text in another app, press **Command+C twice**, and MacTranslate translates the clipboard text in a translucent floating panel.
 
-- Japanese text → English
-- Other text → Japanese
+- Automatically detects the input language; Japanese defaults to English and other languages default to Japanese
+- Choose a target from the languages supported by the on-device model, with Japanese and English first
+- Reverse-translate the displayed result with the swap button
+- Select and copy translated text directly with the standard ⌘C shortcut
+- SwiftUI Liquid Glass panel; press Escape to dismiss it
 - Runs translation on-device through FoundationModels
 - No API key or server required
 - Built with Swift Package Manager; no Xcode project is required
@@ -55,13 +58,14 @@ For global key monitoring, macOS may attribute Accessibility permission to your 
 2. Select text in Safari, Preview, VS Code, a PDF reader, etc.
 3. Press ⌘C twice within about 550 ms.
 4. Wait for the floating translation panel.
-5. Use **Copy** to copy the translated result.
+5. Choose a different target language from the language menu, or use the arrow button to translate the displayed result back into its input language.
+6. Select the translated text and press ⌘C to copy it. Press Escape to dismiss the panel.
 
 The first normal ⌘C already places the selection on the system pasteboard. MacTranslate only observes the global key event and then reads NSPasteboard.general; it does not inject or suppress keyboard events.
 
 ## Updates
 
-After installing a Sparkle-enabled release, MacTranslate checks for updates automatically on Sparkle's schedule (enabled by default). Select **Check for Updates…** from the MT menu-bar item to check manually. Use **Automatically Check for Updates** in that menu to turn background checks on or off. Sparkle asks before downloading and installing an update.
+After installing a Sparkle-enabled release, MacTranslate checks for updates automatically on Sparkle's schedule (enabled by default). Select **Check for Updates…** from the MacTranslate menu-bar item to check manually. Use **Automatically Check for Updates** in that menu to turn background checks on or off. Sparkle asks before downloading and installing an update.
 
 The original MVP did not include Sparkle. Its users must install the first Sparkle-enabled release manually; later releases can be installed from the update window.
 
@@ -79,17 +83,18 @@ Other app
 NSEvent global monitor → NSPasteboard.general
        │
        ▼
-SystemLanguageModel.default → LanguageModelSession
-       │
-       ▼
-Floating NSPanel
+SystemLanguageModel.default → supported language list → LanguageModelSession
+        │
+        ▼
+SwiftUI Liquid Glass view in a floating NSPanel
 
-MT menu-bar item → Sparkle updater → public GitHub appcast and release ZIP
+SwiftUI MenuBarExtra → Sparkle updater → public GitHub appcast and release ZIP
 ~~~
 
 ## Current MVP limitations
 
-- The language rule is intentionally simple: if the source contains Japanese characters, translate to English; otherwise translate to Japanese.
+- Source-language detection uses NaturalLanguage and can be inaccurate for very short or mixed-language snippets.
+- Available target languages depend on the languages exposed by the on-device Foundation Model on that Mac.
 - ⌘C, ⌘C must be received as two global key-down events within 550 ms.
 - Translation is LLM-based rather than Apple's dedicated Translation framework, because this MVP is specifically intended to exercise Foundation Models.
 - Foundation Models may occasionally paraphrase despite the translation-only prompt; a production version should evaluate translation quality and may optionally add the Translation framework as a deterministic/default backend.
@@ -124,11 +129,19 @@ make clean
 │   ├── release-config.sh
 │   ├── release.sh
 │   └── setup-update-signing.sh
-└── Sources/
-    └── MacTranslate/
-        ├── AppUpdater.swift
-        ├── MacTranslate.swift
-        └── UpdateStatusItemController.swift
+├── Sources/
+│   └── MacTranslate/
+│       ├── AppUpdater.swift
+│       ├── FoundationTranslator.swift
+│       ├── MacTranslateApp.swift
+│       ├── MacTranslate.swift
+│       ├── TranslationLanguageCatalog.swift
+│       ├── TranslationPanelController.swift
+│       ├── TranslationPanelModel.swift
+│       └── TranslationPanelView.swift
+└── Tests/
+    └── MacTranslateTests/
+        └── TranslationLanguageCatalogTests.swift
 ~~~
 
 ## Why a CLI-built app bundle?

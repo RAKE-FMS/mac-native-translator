@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+@preconcurrency import Translation
 
 struct TranslationPanelView: View {
     @Bindable var model: TranslationPanelModel
@@ -28,20 +29,52 @@ struct TranslationPanelView: View {
             onEscape()
             return .handled
         }
+        .translationTask(model.translationConfiguration) { session in
+            let sessionMode: TranslationMode
+            if #available(macOS 26.4, *) {
+                sessionMode = session.preferredStrategy == .lowLatency ? .lowLatency : .highFidelity
+            } else {
+                sessionMode = .highFidelity
+            }
+
+            guard let sourceLanguage = session.sourceLanguage,
+                  let targetLanguage = session.targetLanguage else {
+                return
+            }
+
+            guard let work = model.translationWork(
+                from: sourceLanguage,
+                to: targetLanguage,
+                mode: sessionMode
+            ) else {
+                return
+            }
+
+            do {
+                let response = try await session.translate(work.text)
+                model.completeTranslation(response.targetText, operation: work.operation)
+            } catch {
+                model.failTranslation(error.localizedDescription, operation: work.operation)
+            }
+        }
     }
 
     @ViewBuilder
     private var translationContent: some View {
         if model.isTranslating {
-            ProgressView("Translating…")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if let result = model.direction?.resultText {
-            ScrollView {
-                Text(result)
-                    .font(.system(size: 14))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .textSelection(.enabled)
+            if let result = model.direction?.resultText {
+                VStack(alignment: .leading, spacing: 10) {
+                    translatedText(result)
+                    ProgressView()
+                        .controlSize(.small)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else {
+                ProgressView("Translating…")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+        } else if let result = model.direction?.resultText {
+            translatedText(result)
         } else if let message = model.message {
             ScrollView {
                 Text(message)
@@ -62,6 +95,7 @@ struct TranslationPanelView: View {
             Text(direction.sourceLanguage.displayName)
                 .font(.system(size: 14, weight: .semibold))
                 .lineLimit(1)
+                .layoutPriority(1)
 
             Button {
                 Task { await model.reverseTranslation() }
@@ -76,8 +110,29 @@ struct TranslationPanelView: View {
             .disabled(model.isTranslating || direction.resultText == nil)
 
             targetLanguageMenu(direction: direction)
+
+            Spacer(minLength: 4)
+
+            if !model.availableModes.isEmpty || model.isCheckingModes {
+                TranslationModeSlider(
+                    modes: model.availableModes,
+                    selectedMode: model.selectedMode,
+                    isResolvingModes: model.isCheckingModes,
+                    notice: model.modeNotice,
+                    onSelect: model.selectMode
+                )
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func translatedText(_ text: String) -> some View {
+        ScrollView {
+            Text(text)
+                .font(.system(size: 14))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .textSelection(.enabled)
+        }
     }
 
     private func targetLanguageMenu(direction: TranslationDirection) -> some View {
@@ -107,7 +162,7 @@ struct TranslationPanelView: View {
             }
         }
         .buttonStyle(.plain)
-        .disabled(model.isTranslating)
+        .disabled(model.isTranslating || model.isCheckingModes)
     }
 
     private func languageMenuItem(_ language: TranslationLanguage, selected: Bool) -> some View {

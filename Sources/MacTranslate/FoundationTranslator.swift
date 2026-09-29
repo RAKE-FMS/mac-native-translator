@@ -9,10 +9,11 @@ final class FoundationTranslator {
         model.supportedLanguages
     }
 
-    func translate(
+    func translateStreaming(
         _ text: String,
         from sourceLanguage: TranslationLanguage,
-        to targetLanguage: TranslationLanguage
+        to targetLanguage: TranslationLanguage,
+        onPartial: @escaping @MainActor (String) -> Void
     ) async throws -> String {
         switch model.availability {
         case .available:
@@ -40,10 +41,16 @@ final class FoundationTranslator {
             """
         )
 
-        let response = try await session.respond(
+        let stream = session.streamResponse(
             to: "Translate the following text from \(sourceName) into \(targetName):\n\n\(text)"
         )
-        return response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        var finalContent = ""
+        for try await response in stream {
+            finalContent = response.content
+            onPartial(finalContent.trimmingCharacters(in: .whitespacesAndNewlines))
+        }
+        return finalContent.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 

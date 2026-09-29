@@ -1,15 +1,17 @@
 # MacTranslate
 
-A minimal macOS translation utility powered by Apple's on-device Foundation Models framework.
+A minimal macOS translation utility with Apple's Translation and Foundation Models frameworks.
 
 Select text in another app, press **Command+C twice**, and MacTranslate translates the clipboard text in a translucent floating panel.
 
 - Automatically detects the input language; Japanese defaults to English and other languages default to Japanese
-- Choose a target from the languages supported by the on-device model, with Japanese and English first
+- Choose a target from the languages supported by Foundation Models, with Japanese and English first
+- Select Translation LowLatency, Translation, or Foundation Models Streaming from the slider beside the language pair; available choices depend on the device and language pair
+- Remembers the selected translation mode and streams partial results when using Foundation Models
 - Reverse-translate the displayed result with the swap button
 - Select and copy translated text directly with the standard ⌘C shortcut
 - SwiftUI Liquid Glass panel; press Escape to dismiss it
-- Runs translation on-device through FoundationModels
+- Runs translation on-device through Apple's Translation or Foundation Models framework
 - No API key or server required
 - Built with Swift Package Manager; no Xcode project is required
 - Sparkle checks for updates from public GitHub Releases
@@ -17,11 +19,10 @@ Select text in another app, press **Command+C twice**, and MacTranslate translat
 ## Requirements
 
 - macOS 26 or later
-- A Mac that supports Apple Intelligence
-- Apple Intelligence enabled and its model assets ready
 - Swift 6.2+ / Apple Command Line Tools installed
 
-The Foundation Models framework uses Apple's on-device model, so model availability still depends on device eligibility, Apple Intelligence settings, language/region support, and model download state.
+Foundation Models Streaming requires Apple Intelligence, an eligible device, supported languages, and ready model assets. Translation modes are shown when Apple's Translation framework supports the selected language pair; selecting a downloadable language pair lets macOS request the language pack.
+macOS 26.4 or later exposes separate LowLatency and high-fidelity Translation strategies. Earlier macOS 26 releases use the framework's default Translation strategy when that language pair is supported.
 
 ## Build and run from the CLI
 
@@ -58,7 +59,7 @@ For global key monitoring, macOS may attribute Accessibility permission to your 
 2. Select text in Safari, Preview, VS Code, a PDF reader, etc.
 3. Press ⌘C twice within about 550 ms.
 4. Wait for the floating translation panel.
-5. Choose a different target language from the language menu, or use the arrow button to translate the displayed result back into its input language.
+5. Choose a different target language from the language menu, use the arrow button to translate the displayed result back into its input language, or move the slider beside the languages to choose a translation mode. The slider shows only modes available for that language pair. Your choice is saved; Foundation Models Streaming displays partial output while it generates.
 6. Select the translated text and press ⌘C to copy it. Press Escape to dismiss the panel.
 
 The first normal ⌘C already places the selection on the system pasteboard. MacTranslate only observes the global key event and then reads NSPasteboard.general; it does not inject or suppress keyboard events.
@@ -83,7 +84,8 @@ Other app
 NSEvent global monitor → NSPasteboard.general
        │
        ▼
-SystemLanguageModel.default → supported language list → LanguageModelSession
+SystemLanguageModel.default → supported language list → LanguageModelSession.streamResponse
+Translation.LanguageAvailability → TranslationSession (.lowLatency / .highFidelity)
         │
         ▼
 SwiftUI Liquid Glass view in a floating NSPanel
@@ -94,11 +96,11 @@ SwiftUI MenuBarExtra → Sparkle updater → public GitHub appcast and release Z
 ## Current MVP limitations
 
 - Source-language detection uses NaturalLanguage and can be inaccurate for very short or mixed-language snippets.
-- Available target languages depend on the languages exposed by the on-device Foundation Model on that Mac.
+- Available target languages depend on the languages exposed by the on-device Foundation Model on that Mac. Translation modes are checked separately for each source and target language pair.
+- Translation framework language packs may need to be downloaded. macOS presents its download confirmation when required. HighFidelity may internally fall back to another strategy at runtime; the framework does not report that fallback to the app.
 - ⌘C, ⌘C must be received as two global key-down events within 550 ms.
-- Translation is LLM-based rather than Apple's dedicated Translation framework, because this MVP is specifically intended to exercise Foundation Models.
-- Foundation Models may occasionally paraphrase despite the translation-only prompt; a production version should evaluate translation quality and may optionally add the Translation framework as a deterministic/default backend.
-- There is no launch-at-login setting, preferences window, configurable shortcut, translation history, or streaming output.
+- Foundation Models may occasionally paraphrase despite the translation-only prompt.
+- There is no launch-at-login setting, preferences window, configurable shortcut, or translation history.
 
 ## Useful commands
 
@@ -136,6 +138,8 @@ make clean
 │       ├── MacTranslateApp.swift
 │       ├── MacTranslate.swift
 │       ├── TranslationLanguageCatalog.swift
+│       ├── TranslationMode.swift
+│       ├── TranslationModeSlider.swift
 │       ├── TranslationPanelController.swift
 │       ├── TranslationPanelModel.swift
 │       └── TranslationPanelView.swift

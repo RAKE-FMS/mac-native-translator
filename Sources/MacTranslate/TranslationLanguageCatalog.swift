@@ -121,6 +121,10 @@ struct TranslationDirection {
         resultText = text
     }
 
+    mutating func clearResult() {
+        resultText = nil
+    }
+
     mutating func selectTarget(_ language: TranslationLanguage) -> TranslationRequest {
         targetLanguage = language
         resultText = nil

@@ -12,7 +12,7 @@ struct TranslationModeSlider: View {
     @State private var labelDismissTask: Task<Void, Never>?
 
     private let knobDiameter: CGFloat = 25
-    private let horizontalInset: CGFloat = 13
+    private let horizontalInset: CGFloat = 17
 
     private var isInteractive: Bool {
         !isResolvingModes && modes.count > 1
@@ -35,14 +35,15 @@ struct TranslationModeSlider: View {
                 let width = geometry.size.width
                 let activeMode = previewMode ?? selectedMode
                 let activeIndex = modes.firstIndex(of: activeMode) ?? 0
+                let activePosition = stopPosition(activeIndex, count: modes.count, width: width)
                 let centerY = geometry.size.height / 2
 
                 ZStack {
                     Capsule()
-                        .fill(Color.white.opacity(0.14))
+                        .fill(Color.black.opacity(0.46))
                         .frame(height: 11)
                         .glassEffect(
-                            .regular.tint(Color.white.opacity(0.18)),
+                            .regular.tint(Color.black.opacity(0.48)),
                             in: Capsule()
                         )
                         .position(x: width / 2, y: centerY)
@@ -50,7 +51,7 @@ struct TranslationModeSlider: View {
                     if modes.count > 1 {
                         ForEach(modes.indices, id: \.self) { index in
                             Circle()
-                                .fill(Color.white.opacity(index == activeIndex ? 0.18 : 0.52))
+                                .fill(Color.white.opacity(index == activeIndex ? 0.22 : 0.72))
                                 .frame(width: 5, height: 5)
                                 .position(x: stopPosition(index, count: modes.count, width: width), y: centerY)
                         }
@@ -63,11 +64,15 @@ struct TranslationModeSlider: View {
                             .position(x: width / 2, y: centerY)
                     } else if !modes.isEmpty {
                         Circle()
-                            .fill(Color.white.opacity(0.96))
+                            .fill(Color(white: 0.12))
                             .frame(width: knobDiameter, height: knobDiameter)
-                            .glassEffect(.regular.tint(Color.white.opacity(0.92)), in: Circle())
+                            .glassEffect(.regular.tint(Color.black.opacity(0.72)), in: Circle())
+                            .overlay {
+                                Circle()
+                                    .strokeBorder(Color.white.opacity(0.72), lineWidth: 1)
+                            }
                             .shadow(color: .black.opacity(0.18), radius: 4, y: 1)
-                            .position(x: stopPosition(activeIndex, count: modes.count, width: width), y: centerY)
+                            .position(x: activePosition, y: centerY)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -78,9 +83,11 @@ struct TranslationModeSlider: View {
                             guard isInteractive else { return }
                             let index = index(at: value.location.x, width: width, count: modes.count)
                             guard modes.indices.contains(index) else { return }
+                            let mode = modes[index]
+                            guard previewMode != mode || !isEditing else { return }
                             withAnimation(.easeOut(duration: 0.12)) {
                                 isEditing = true
-                                previewMode = modes[index]
+                                previewMode = mode
                             }
                         }
                         .onEnded { value in
@@ -90,11 +97,7 @@ struct TranslationModeSlider: View {
                                 finishEditing()
                                 return
                             }
-                            let mode = modes[index]
-                            finishEditing()
-                            if mode != selectedMode {
-                                onSelect(mode)
-                            }
+                            finishEditing(selecting: modes[index])
                         },
                     isEnabled: isInteractive
                 )
@@ -162,8 +165,11 @@ struct TranslationModeSlider: View {
         return Int((fraction * CGFloat(count - 1)).rounded())
     }
 
-    private func finishEditing() {
-        withAnimation(.easeOut(duration: 0.12)) {
+    private func finishEditing(selecting mode: TranslationMode? = nil) {
+        withAnimation(.easeOut(duration: 0.16)) {
+            if let mode, mode != selectedMode {
+                onSelect(mode)
+            }
             isEditing = false
             previewMode = nil
         }
@@ -176,9 +182,11 @@ struct TranslationModeSlider: View {
         guard nextIndex != currentIndex else { return }
 
         let mode = modes[nextIndex]
-        previewMode = mode
-        isEditing = true
-        onSelect(mode)
+        withAnimation(.easeOut(duration: 0.16)) {
+            previewMode = mode
+            isEditing = true
+            onSelect(mode)
+        }
 
         labelDismissTask?.cancel()
         labelDismissTask = Task {

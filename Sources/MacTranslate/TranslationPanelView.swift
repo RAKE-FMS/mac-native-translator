@@ -6,6 +6,8 @@ struct TranslationPanelView: View {
     @Bindable var model: TranslationPanelModel
     let onEscape: () -> Void
 
+    @FocusState private var panelHasFocus: Bool
+
     private let cornerRadius: CGFloat = 24
 
     var body: some View {
@@ -23,11 +25,23 @@ struct TranslationPanelView: View {
             .regularMaterial,
             in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         )
+        .focusable()
+        .focused($panelHasFocus)
+        .focusEffectDisabled()
         .gesture(WindowDragGesture())
         .allowsWindowActivationEvents()
         .onKeyPress(.escape) {
             onEscape()
             return .handled
+        }
+        .onKeyPress(.leftArrow) {
+            model.selectAdjacentMode(by: -1) ? .handled : .ignored
+        }
+        .onKeyPress(.rightArrow) {
+            model.selectAdjacentMode(by: 1) ? .handled : .ignored
+        }
+        .onAppear {
+            panelHasFocus = true
         }
         .translationTask(model.translationConfiguration) { session in
             let sessionMode: TranslationMode

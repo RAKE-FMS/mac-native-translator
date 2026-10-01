@@ -131,6 +131,22 @@ final class TranslationPanelModel {
         beginTranslation(request, operation: operation)
     }
 
+    @discardableResult
+    func selectAdjacentMode(by offset: Int) -> Bool {
+        guard !isCheckingModes,
+              offset != 0,
+              availableModes.count > 1,
+              let currentIndex = availableModes.firstIndex(of: selectedMode) else {
+            return false
+        }
+
+        let nextIndex = min(max(currentIndex + offset, 0), availableModes.count - 1)
+        if nextIndex != currentIndex {
+            selectMode(availableModes[nextIndex])
+        }
+        return true
+    }
+
     func translationWork(
         from sourceLanguage: Locale.Language,
         to targetLanguage: Locale.Language,

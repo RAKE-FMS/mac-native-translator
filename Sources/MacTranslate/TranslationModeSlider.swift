@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct TranslationModeSlider: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     let modes: [TranslationMode]
     let selectedMode: TranslationMode
     let isResolvingModes: Bool
@@ -12,10 +14,15 @@ struct TranslationModeSlider: View {
     @State private var labelDismissTask: Task<Void, Never>?
 
     private let knobDiameter: CGFloat = 25
-    private let horizontalInset: CGFloat = 17
+    private let horizontalInset: CGFloat = 15
+    private let trackEndInset: CGFloat = 3
 
     private var isInteractive: Bool {
         !isResolvingModes && modes.count > 1
+    }
+
+    private var sliderColor: Color {
+        colorScheme == .dark ? .white : .black
     }
 
     var body: some View {
@@ -37,13 +44,14 @@ struct TranslationModeSlider: View {
                 let activeIndex = modes.firstIndex(of: activeMode) ?? 0
                 let activePosition = stopPosition(activeIndex, count: modes.count, width: width)
                 let centerY = geometry.size.height / 2
+                let trackWidth = max(0, width - trackEndInset * 2)
 
                 ZStack {
                     Capsule()
-                        .fill(Color.black.opacity(0.46))
-                        .frame(height: 11)
+                        .fill(sliderColor.opacity(0.14))
+                        .frame(width: trackWidth, height: knobDiameter - 4)
                         .glassEffect(
-                            .regular.tint(Color.black.opacity(0.48)),
+                            .regular.tint(sliderColor.opacity(0.16)),
                             in: Capsule()
                         )
                         .position(x: width / 2, y: centerY)
@@ -51,7 +59,7 @@ struct TranslationModeSlider: View {
                     if modes.count > 1 {
                         ForEach(modes.indices, id: \.self) { index in
                             Circle()
-                                .fill(Color.white.opacity(index == activeIndex ? 0.22 : 0.72))
+                                .fill(sliderColor.opacity(index == activeIndex ? 0.24 : 0.68))
                                 .frame(width: 5, height: 5)
                                 .position(x: stopPosition(index, count: modes.count, width: width), y: centerY)
                         }
@@ -64,12 +72,14 @@ struct TranslationModeSlider: View {
                             .position(x: width / 2, y: centerY)
                     } else if !modes.isEmpty {
                         Circle()
-                            .fill(Color(white: 0.12))
+                            .fill(Color.white)
                             .frame(width: knobDiameter, height: knobDiameter)
-                            .glassEffect(.regular.tint(Color.black.opacity(0.72)), in: Circle())
+                            .glassEffect(.regular.tint(Color.white.opacity(0.72)), in: Circle())
                             .overlay {
-                                Circle()
-                                    .strokeBorder(Color.white.opacity(0.72), lineWidth: 1)
+                                if colorScheme == .light {
+                                    Circle()
+                                        .strokeBorder(Color.black.opacity(0.18), lineWidth: 1)
+                                }
                             }
                             .shadow(color: .black.opacity(0.18), radius: 4, y: 1)
                             .position(x: activePosition, y: centerY)

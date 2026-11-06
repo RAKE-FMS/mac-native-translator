@@ -71,6 +71,7 @@ struct TranslationPanelView: View {
                 model.failTranslation(error.localizedDescription, operation: work.operation)
             }
         }
+        .environment(\.appearsActive, false)
     }
 
     @ViewBuilder

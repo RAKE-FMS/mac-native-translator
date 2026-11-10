@@ -5,6 +5,7 @@ import Foundation
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let appUpdater = AppUpdater()
+    let launchAtLogin = LaunchAtLogin()
 
     private let hotKeyMonitor = DoubleCopyMonitor()
     private let translator = FoundationTranslator()
@@ -14,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApplication.shared.setActivationPolicy(.accessory)
 
+        launchAtLogin.promptIfNeeded()
         requestAccessibilityPermissionIfNeeded()
 
         hotKeyMonitor.onDoubleCommandC = { [weak self] in

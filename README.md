@@ -100,7 +100,9 @@ SwiftUI MenuBarExtra → Sparkle updater → public GitHub appcast and release Z
 - Translation framework language packs may need to be downloaded. macOS presents its download confirmation when required. HighFidelity may internally fall back to another strategy at runtime; the framework does not report that fallback to the app.
 - ⌘C, ⌘C must be received as two global key-down events within 550 ms.
 - Foundation Models may occasionally paraphrase despite the translation-only prompt.
-- There is no launch-at-login setting, preferences window, configurable shortcut, or translation history.
+You can choose whether to launch at login on first launch. To change it later, click the MacTranslate menu bar icon and toggle “Launch at Login”.
+
+- There is no preferences window, configurable shortcut, or translation history.
 
 ## Useful commands
 

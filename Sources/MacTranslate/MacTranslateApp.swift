@@ -8,7 +8,7 @@ struct MacTranslateApp: App {
 
     var body: some Scene {
         MenuBarExtra("MacTranslate", systemImage: "character.bubble") {
-            UpdateMenuView(updater: appDelegate.appUpdater)
+            UpdateMenuView(updater: appDelegate.appUpdater, launchAtLogin: appDelegate.launchAtLogin)
         }
     }
 }
@@ -16,6 +16,7 @@ struct MacTranslateApp: App {
 @MainActor
 private struct UpdateMenuView: View {
     @Bindable var updater: AppUpdater
+    let launchAtLogin: LaunchAtLogin
 
     var body: some View {
         Button("Check for Updates…") {
@@ -31,6 +32,14 @@ private struct UpdateMenuView: View {
             )
         )
         .disabled(!updater.isConfigured)
+
+        Divider()
+
+        Toggle("Launch at Login", isOn: Binding(
+            get: { launchAtLogin.isEnabled },
+            set: { launchAtLogin.setEnabled($0) }
+        ))
+        .onAppear { launchAtLogin.refresh() }
 
         Divider()
 

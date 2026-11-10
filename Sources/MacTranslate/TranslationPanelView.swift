@@ -107,10 +107,8 @@ struct TranslationPanelView: View {
 
     private func languageRow(direction: TranslationDirection) -> some View {
         HStack(spacing: 12) {
-            Text(direction.sourceLanguage.displayName)
-                .font(.system(size: 14, weight: .semibold))
-                .lineLimit(1)
-                .layoutPriority(1)
+            languageMenu(selection: direction.sourceLanguage, onSelect: model.selectSource)
+                .accessibilityLabel("Source language: \(direction.sourceLanguage.displayName)")
 
             Button {
                 Task { await model.reverseTranslation() }
@@ -124,7 +122,8 @@ struct TranslationPanelView: View {
             .accessibilityLabel("Translate back to the input language")
             .disabled(model.isTranslating || direction.resultText == nil)
 
-            targetLanguageMenu(direction: direction)
+            languageMenu(selection: direction.targetLanguage, onSelect: model.selectTarget)
+                .accessibilityLabel("Target language: \(direction.targetLanguage.displayName)")
 
             Spacer(minLength: 4)
 
@@ -150,13 +149,16 @@ struct TranslationPanelView: View {
         }
     }
 
-    private func targetLanguageMenu(direction: TranslationDirection) -> some View {
+    private func languageMenu(
+        selection: TranslationLanguage,
+        onSelect: @escaping (TranslationLanguage) async -> Void
+    ) -> some View {
         let preferred = model.languageOptions.filter { ["ja", "en"].contains($0.identifier) }
         let additional = model.languageOptions.filter { !["ja", "en"].contains($0.identifier) }
 
         return Menu {
             ForEach(preferred) { language in
-                languageMenuItem(language, selected: direction.targetLanguage == language)
+                languageMenuItem(language, selected: selection.id == language.id, onSelect: onSelect)
             }
 
             if !preferred.isEmpty && !additional.isEmpty {
@@ -164,11 +166,11 @@ struct TranslationPanelView: View {
             }
 
             ForEach(additional) { language in
-                languageMenuItem(language, selected: direction.targetLanguage == language)
+                languageMenuItem(language, selected: selection.id == language.id, onSelect: onSelect)
             }
         } label: {
             HStack(spacing: 5) {
-                Text(direction.targetLanguage.displayName)
+                Text(selection.displayName)
                     .font(.system(size: 14, weight: .semibold))
                     .lineLimit(1)
                 Image(systemName: "chevron.down")
@@ -180,9 +182,13 @@ struct TranslationPanelView: View {
         .disabled(model.isTranslating || model.isCheckingModes)
     }
 
-    private func languageMenuItem(_ language: TranslationLanguage, selected: Bool) -> some View {
+    private func languageMenuItem(
+        _ language: TranslationLanguage,
+        selected: Bool,
+        onSelect: @escaping (TranslationLanguage) async -> Void
+    ) -> some View {
         Button {
-            Task { await model.selectTarget(language) }
+            Task { await onSelect(language) }
         } label: {
             if selected {
                 Label(language.displayName, systemImage: "checkmark")

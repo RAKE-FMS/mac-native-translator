@@ -90,6 +90,24 @@ final class TranslationPanelModel {
         clearModeNotice()
     }
 
+    func selectSource(_ language: TranslationLanguage) async {
+        guard !isTranslating, !isCheckingModes, var direction,
+              direction.sourceLanguage.id != language.id else { return }
+
+        var target = direction.targetLanguage
+        if target.identifier == language.identifier {
+            guard let fallback = TranslationLanguageCatalog.defaultTarget(
+                for: language,
+                available: languageOptions
+            ) else { return }
+            target = fallback
+        }
+
+        let request = direction.selectSource(language, target: target)
+        self.direction = direction
+        await changeDirectionAndTranslate(request)
+    }
+
     func selectTarget(_ language: TranslationLanguage) async {
         guard !isTranslating, !isCheckingModes, var direction else { return }
         let request = direction.selectTarget(language)

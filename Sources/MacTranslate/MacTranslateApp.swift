@@ -8,7 +8,11 @@ struct MacTranslateApp: App {
 
     var body: some Scene {
         MenuBarExtra("MacTranslate", systemImage: "character.bubble") {
-            UpdateMenuView(updater: appDelegate.appUpdater, launchAtLogin: appDelegate.launchAtLogin)
+            UpdateMenuView(
+                updater: appDelegate.appUpdater,
+                launchAtLogin: appDelegate.launchAtLogin,
+                translateScreenRegion: appDelegate.startScreenTranslation
+            )
         }
     }
 }
@@ -17,8 +21,13 @@ struct MacTranslateApp: App {
 private struct UpdateMenuView: View {
     @Bindable var updater: AppUpdater
     let launchAtLogin: LaunchAtLogin
+    let translateScreenRegion: () -> Void
 
     var body: some View {
+        Button("Translate Screen Region…", action: translateScreenRegion)
+
+        Divider()
+
         Button("Check for Updates…") {
             updater.checkForUpdates()
         }

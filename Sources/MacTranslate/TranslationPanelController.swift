@@ -29,8 +29,14 @@ final class TranslationPanelController: NSObject {
         configurePanel()
     }
 
+    var isVisible: Bool { panel.isVisible }
+
     func show() {
         positionNearPointer()
+        restore()
+    }
+
+    func restore() {
         panel.makeKeyAndOrderFront(nil)
     }
 

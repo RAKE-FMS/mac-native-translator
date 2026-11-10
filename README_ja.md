@@ -64,6 +64,12 @@ swift run MacTranslate
 
 最初の通常の ⌘C ですでに、選択したテキストがシステムのペーストボードにコピーされます。MacTranslate はグローバルキーイベントを監視したあと、NSPasteboard.general からテキストを読み取るだけです。キーボードイベントの送信や抑制は行いません。
 
+### 画面上の文字を翻訳する
+
+**Hyper＋T**（**Control + Option + Shift + Command + T**）を押し、文字をドラッグで囲みます。メニューバーの **Translate Screen Region…** からも開始できます。Escで選択をキャンセルできます。
+
+初回は **システム設定 → プライバシーとセキュリティ → 画面とシステムオーディオ収録** でMacTranslateを許可してから、もう一度お試しください。ドラッグを始めたディスプレイ内で範囲を選べます。Apple Visionがデバイス上で文字を認識し、既存の翻訳パネルが選択中の翻訳方式で翻訳します。
+
 ## アップデート
 
 Sparkle 対応版をインストールすると、MacTranslate は Sparkle のスケジュールに従ってアップデートを自動確認します（既定で有効）。メニューバーの MacTranslate メニューから **Check for Updates…** を選ぶと、手動でも確認できます。同じメニューの **Automatically Check for Updates** で自動確認のオン・オフを切り替えられます。ダウンロードとインストールは Sparkle の画面で承認してから行われます。

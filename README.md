@@ -64,6 +64,12 @@ For global key monitoring, macOS may attribute Accessibility permission to your 
 
 The first normal ⌘C already places the selection on the system pasteboard. MacTranslate only observes the global key event and then reads NSPasteboard.general; it does not inject or suppress keyboard events.
 
+### Translate text from the screen
+
+Press **Hyper + T** (**Control + Option + Shift + Command + T**), then drag around the text and release. You can also choose **Translate Screen Region…** from the MacTranslate menu. Press Escape to cancel.
+
+On first use, allow MacTranslate in **System Settings → Privacy & Security → Screen & System Audio Recording**, then try again. The selection stays on the display where you start dragging. Apple Vision recognizes the text on-device, and the existing translation panel uses your selected translation mode.
+
 ## Updates
 
 After installing a Sparkle-enabled release, MacTranslate checks for updates automatically on Sparkle's schedule (enabled by default). Select **Check for Updates…** from the MacTranslate menu-bar item to check manually. Use **Automatically Check for Updates** in that menu to turn background checks on or off. Sparkle asks before downloading and installing an update.

@@ -15,16 +15,20 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "MacTranslate",
-            dependencies: [.product(name: "Sparkle", package: "Sparkle")],
+            dependencies: [
+                "TranslationFeature",
+                "DictionaryRegistrationFeature",
+                .product(name: "Sparkle", package: "Sparkle"),
+            ],
             path: "Sources/MacTranslate",
             linkerSettings: [
                 .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])
             ]
         ),
-        .testTarget(
-            name: "MacTranslateTests",
-            dependencies: ["MacTranslate"],
-            path: "Tests/MacTranslateTests"
-        )
+        .target(name: "TranslationFeature"),
+        .target(name: "DictionaryRegistrationFeature", dependencies: ["KeyboardServicesBridge"]),
+        .target(name: "KeyboardServicesBridge", linkerSettings: [.linkedLibrary("sqlite3")]),
+        .testTarget(name: "TranslationFeatureTests", dependencies: ["TranslationFeature"]),
+        .testTarget(name: "DictionaryRegistrationFeatureTests", dependencies: ["DictionaryRegistrationFeature"]),
     ]
 )

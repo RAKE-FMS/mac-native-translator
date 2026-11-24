@@ -1,6 +1,6 @@
 # MacTranslate
 
-Apple の Translation と Foundation Models フレームワークを使う、シンプルな macOS 翻訳ユーティリティです。
+テキスト翻訳・画面 OCR・日本語ユーザ辞書への単語登録を備えた macOS メニューバーアプリです。
 
 ほかのアプリでテキストを選択し、**Command+C を2回**押すと、MacTranslate がクリップボードのテキストを翻訳して半透明のフローティングパネルに表示します。
 
@@ -70,6 +70,12 @@ swift run MacTranslate
 
 初回は **システム設定 → プライバシーとセキュリティ → 画面とシステムオーディオ収録** でMacTranslateを許可してから、もう一度お試しください。ドラッグを始めたディスプレイ内で範囲を選べます。Apple Visionがデバイス上で文字を認識し、既存の翻訳パネルが選択中の翻訳方式で翻訳します。
 
+### ユーザ辞書に単語を登録する
+
+語句を選択して **Hyper＋D**（**Control + Option + Shift + Command + D**）を押します。メニューバーの **ユーザ辞書に登録…** からも開けます。パネルで語句と推定した読みを確認・編集し、**登録**を押します。Esc を押すか、別のウィンドウに移ると下書きを破棄します。
+
+選択語句の取得にはアクセシビリティ権限が必要です。登録には macOS の非公開 KeyboardServices API を使います。自動登録できないときは、入力した内容を控えてから **辞書設定を開く** で手動追加できます。
+
 ## アップデート
 
 Sparkle 対応版をインストールすると、MacTranslate は Sparkle のスケジュールに従ってアップデートを自動確認します（既定で有効）。メニューバーの MacTranslate メニューから **Check for Updates…** を選ぶと、手動でも確認できます。同じメニューの **Automatically Check for Updates** で自動確認のオン・オフを切り替えられます。ダウンロードとインストールは Sparkle の画面で承認してから行われます。
@@ -79,6 +85,8 @@ Sparkle 対応版をインストールすると、MacTranslate は Sparkle の�
 メンテナー用スクリプトで作成するリリース版は Apple Development 証明書で署名し、公証していません。初回ダウンロード時に Gatekeeper が警告を表示した場合は、**システム設定 → プライバシーとセキュリティ** から MacTranslate の起動を許可してください。
 
 ## アーキテクチャ
+
+`MacTranslate` がメニューバー、ショートカット、ログイン起動、更新を担当します。`TranslationFeature` が翻訳と画面 OCR を、`DictionaryRegistrationFeature` が辞書登録を担当します。
 
 ~~~text
 ほかのアプリ

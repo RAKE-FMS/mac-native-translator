@@ -20,8 +20,8 @@ final class LaunchAtLogin {
     func promptIfNeeded() {
         guard !UserDefaults.standard.bool(forKey: promptKey) else { return }
         let alert = NSAlert()
-        alert.messageText = "Launch MacTranslate at login?"
-        alert.informativeText = "MacTranslate can start automatically when you log in. You can change this later from its menu bar icon."
+        alert.messageText = "Launch \(AppIdentity.displayName) at login?"
+        alert.informativeText = "\(AppIdentity.displayName) can start automatically when you log in. You can change this later from its menu bar icon."
         alert.addButton(withTitle: "Enable")
         alert.addButton(withTitle: "Not Now")
         NSApp.activate(ignoringOtherApps: true)
@@ -41,8 +41,8 @@ final class LaunchAtLogin {
             }
             if service.status == .requiresApproval {
                 let alert = NSAlert()
-                alert.messageText = "Allow MacTranslate to open at login"
-                alert.informativeText = "Enable MacTranslate in Login Items in System Settings."
+                alert.messageText = "Allow \(AppIdentity.displayName) to open at login"
+                alert.informativeText = "Enable \(AppIdentity.displayName) in Login Items in System Settings."
                 alert.addButton(withTitle: "Open System Settings")
                 alert.addButton(withTitle: "Later")
                 if alert.runModal() == .alertFirstButtonReturn {

@@ -7,24 +7,32 @@ struct MacTranslateApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
-        MenuBarExtra("MacTranslate", systemImage: "character.bubble") {
-            UpdateMenuView(
+        MenuBarExtra(AppIdentity.displayName, systemImage: "character.bubble") {
+            AppMenuView(
                 updater: appDelegate.appUpdater,
                 launchAtLogin: appDelegate.launchAtLogin,
-                translateScreenRegion: appDelegate.startScreenTranslation
+                dictionaryHotKey: appDelegate.dictionaryHotKey,
+                translateScreenRegion: appDelegate.startScreenTranslation,
+                registerDictionaryEntry: appDelegate.startDictionaryRegistration
             )
         }
     }
 }
 
 @MainActor
-private struct UpdateMenuView: View {
+private struct AppMenuView: View {
     @Bindable var updater: AppUpdater
     let launchAtLogin: LaunchAtLogin
+    let dictionaryHotKey: DictionaryHotKey
     let translateScreenRegion: () -> Void
+    let registerDictionaryEntry: () -> Void
 
     var body: some View {
         Button("Translate Screen Region…", action: translateScreenRegion)
+        Button("ユーザ辞書に登録…", action: registerDictionaryEntry)
+        if dictionaryHotKey.registrationError != nil {
+            Text("Hyper+D を登録できませんでした")
+        }
 
         Divider()
 
@@ -52,7 +60,7 @@ private struct UpdateMenuView: View {
 
         Divider()
 
-        Button("Quit MacTranslate") {
+        Button("Quit \(AppIdentity.displayName)") {
             NSApplication.shared.terminate(nil)
         }
         .keyboardShortcut("q")

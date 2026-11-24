@@ -1,6 +1,6 @@
 import CoreGraphics
 import XCTest
-@testable import MacTranslate
+@testable import TranslationFeature
 
 final class ScreenRegionTests: XCTestCase {
     private let primaryFrame = CGRect(x: 0, y: 0, width: 1440, height: 900)

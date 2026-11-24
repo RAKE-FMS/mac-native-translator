@@ -1,5 +1,5 @@
 import XCTest
-@testable import MacTranslate
+@testable import TranslationFeature
 
 final class TranslationLanguageCatalogTests: XCTestCase {
     private let japanese = TranslationLanguage(identifier: "ja", displayName: "日本語")

@@ -1,6 +1,6 @@
 # MacTranslate
 
-A minimal macOS translation utility with Apple's Translation and Foundation Models frameworks.
+A macOS menu bar app for text translation, screen OCR, and Japanese user dictionary registration.
 
 Select text in another app, press **Command+C twice**, and MacTranslate translates the clipboard text in a translucent floating panel.
 
@@ -70,6 +70,12 @@ Press **Hyper + T** (**Control + Option + Shift + Command + T**), then drag arou
 
 On first use, allow MacTranslate in **System Settings → Privacy & Security → Screen & System Audio Recording**, then try again. The selection stays on the display where you start dragging. Apple Vision recognizes the text on-device, and the existing translation panel uses your selected translation mode.
 
+### Add a word to the Japanese user dictionary
+
+Select the phrase and press **Hyper + D** (**Control + Option + Shift + Command + D**), or choose **ユーザ辞書に登録…** from the menu bar. Review or edit the phrase and its suggested reading, then click **登録** (Register). Press Escape or switch to another window to discard the draft.
+
+Selection capture requires Accessibility access. Registration uses macOS’s private KeyboardServices API. If automatic registration is unavailable, note the draft fields before opening System Settings to add the entry manually.
+
 ## Updates
 
 After installing a Sparkle-enabled release, MacTranslate checks for updates automatically on Sparkle's schedule (enabled by default). Select **Check for Updates…** from the MacTranslate menu-bar item to check manually. Use **Automatically Check for Updates** in that menu to turn background checks on or off. Sparkle asks before downloading and installing an update.
@@ -79,6 +85,8 @@ The original MVP did not include Sparkle. Its users must install the first Spark
 Release packages created by the maintainer scripts are signed with an Apple Development identity and are not notarized. On first download, Gatekeeper may require you to approve opening MacTranslate in **System Settings → Privacy & Security**.
 
 ## Architecture
+
+`MacTranslate` owns the menu bar, shortcuts, launch at login, and updates. `TranslationFeature` owns translation and screen OCR, and `DictionaryRegistrationFeature` owns dictionary registration.
 
 ~~~text
 Other app
